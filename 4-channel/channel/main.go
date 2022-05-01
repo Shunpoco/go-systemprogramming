@@ -9,12 +9,13 @@ func main() {
 	fmt.Println("start sub()")
 	// the channel in order to notice the end of goroutine.
 	// we can use any types
-	done := make(chan bool)
+	// Use struct, because it is 0byte.
+	done := make(chan struct{})
 	go func() {
 		fmt.Println("sub() is start!")
 		time.Sleep(time.Second)
 		fmt.Println("sub() is finished")
-		done <- true
+		done <- struct{}{}
 	}()
 
 	// Wait the finish
