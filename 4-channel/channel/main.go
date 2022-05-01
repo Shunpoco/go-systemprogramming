@@ -1,27 +1,24 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func main() {
-	// without buffer
-	// tasks := make(chan string)
-	// with buffer
-	tasks := make(chan string, 10)
+	fmt.Println("start sub()")
+	// the channel in order to notice the end of goroutine.
+	// we can use any types
+	done := make(chan bool)
+	go func() {
+		fmt.Println("sub() is start!")
+		time.Sleep(time.Second)
+		fmt.Println("sub() is finished")
+		done <- true
+	}()
 
-	tasks <- "cmake .."
-	tasks <- "cmake . --build Debug"
+	// Wait the finish
+	<-done
 
-	task := <-tasks
-	fmt.Println(task)
-	// Get data and check close
-	// the second variable shows that the channel is still open (true) or closed (false).
-	task, ok := <-tasks
-	fmt.Println(task)
-	if ok {
-		fmt.Println("Still open!")
-	}
-
-	tasks <- "discord"
-	// if you don't need to get data, we can discord it.
-	<-tasks
+	fmt.Println("all tasks are finished")
 }
