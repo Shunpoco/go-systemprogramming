@@ -31,10 +31,17 @@ func generator(ctx context.Context, num int) <-chan int {
 }
 
 func main() {
+	// We can check whether a context has a timeout or not.
+	ctx := context.Background()
+	// The second output of context.Deadline() shows the context has timeout(true) or not(false)
+	fmt.Println(ctx.Deadline())
+
+	fmt.Println(time.Now())
 	// // A context created by context.WithDeadline is automatically closed if the time goes to the second value.
 	// ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second))
 	// context.WithTimeout treats time.Duration as its second variable.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	fmt.Println(ctx.Deadline())
 	gen := generator(ctx, 1)
 
 	wg.Add(1)
