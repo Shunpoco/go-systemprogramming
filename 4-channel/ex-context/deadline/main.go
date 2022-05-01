@@ -53,6 +53,8 @@ LOOP:
 	}
 
 	// We can also use cancel as an explicitly close
+	// In this case, cancel() does nothing.
+	// The official document says that we should call cancel() explicitlily even if we set timeout.
 	cancel()
 
 	wg.Wait()
