@@ -31,8 +31,10 @@ func generator(ctx context.Context, num int) <-chan int {
 }
 
 func main() {
-	// A context created by context.WithDeadline is automatically closed if the time goes to the second value.
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second))
+	// // A context created by context.WithDeadline is automatically closed if the time goes to the second value.
+	// ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second))
+	// context.WithTimeout treats time.Duration as its second variable.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	gen := generator(ctx, 1)
 
 	wg.Add(1)
