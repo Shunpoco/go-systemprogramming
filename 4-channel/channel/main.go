@@ -28,4 +28,8 @@ func main() {
 	// After a channel is closed, we still can read data from the channel.
 	// We get default value. In this case, int(0).
 	fmt.Println(<-done)
+
+	// Panic!
+	// We get `panic: send on closed channel`
+	// done <- 2
 }
