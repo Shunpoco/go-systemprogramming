@@ -1,20 +1,21 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
 )
 
 var wg sync.WaitGroup
 
-func generator(done chan struct{}, num int) <-chan int {
+func generator(ctx context.Context, num int) <-chan int {
 	out := make(chan int)
 	go func() {
 		defer wg.Done()
 	LOOP:
 		for {
 			select {
-			case <-done:
+			case <-ctx.Done():
 				break LOOP
 			case out <- num:
 			}
@@ -27,8 +28,8 @@ func generator(done chan struct{}, num int) <-chan int {
 }
 
 func main() {
-	done := make(chan struct{})
-	gen := generator(done, 1)
+	ctx, cancel := context.WithCancel(context.Background())
+	gen := generator(ctx, 1)
 
 	wg.Add(1)
 
@@ -36,7 +37,7 @@ func main() {
 		fmt.Println(<-gen)
 	}
 
-	close(done)
+	cancel()
 
 	wg.Wait()
 }
