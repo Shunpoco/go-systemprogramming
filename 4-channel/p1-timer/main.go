@@ -5,12 +5,18 @@ import (
 	"time"
 )
 
-func main() {
+func timer(d time.Duration) time.Time {
 	var c chan int
+	var r time.Time
 	select {
 	case m := <-c:
 		func(int) {}(m)
-	case <-time.After(2 * time.Second):
-		fmt.Println("timed out")
+	case d := <-time.After(2 * time.Second):
+		r = d
 	}
+	return r
+}
+
+func main() {
+	fmt.Println(timer(time.Second))
 }
