@@ -14,10 +14,11 @@ func main() {
 	task := <-tasks
 	fmt.Println(task)
 	// Get data and check close
+	// the second variable shows that the channel is still open (true) or closed (false).
 	task, ok := <-tasks
 	fmt.Println(task)
 	if ok {
-		fmt.Println("Close!")
+		fmt.Println("Still open!")
 	}
 
 	tasks <- "discord"
