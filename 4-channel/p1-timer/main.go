@@ -5,14 +5,11 @@ import (
 	"time"
 )
 
-var c chan int
-
-func handle(int) {}
-
 func main() {
+	var c chan int
 	select {
 	case m := <-c:
-		handle(m)
+		func(int) {}(m)
 	case <-time.After(2 * time.Second):
 		fmt.Println("timed out")
 	}
