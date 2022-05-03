@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 )
 
 var wg sync.WaitGroup
@@ -27,6 +28,7 @@ func generator(ctx context.Context, num int) <-chan int {
 				break LOOP
 			case out <- num:
 			}
+			time.Sleep(2 * time.Second)
 		}
 
 		close(out)
@@ -37,7 +39,7 @@ func generator(ctx context.Context, num int) <-chan int {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	gen := generator(ctx, 1)
 
 	wg.Add(1)
@@ -46,6 +48,8 @@ func main() {
 		result, ok := <-gen
 		if ok {
 			fmt.Println(result)
+		} else {
+			fmt.Println("timeout")
 		}
 	}
 
