@@ -5,11 +5,9 @@ import (
 	"fmt"
 )
 
-type ctxKey int
+type ctxKey struct{}
 
-const (
-	a ctxKey = iota
-)
+var a = ctxKey{}
 
 func SetValue(ctx context.Context) context.Context {
 	return context.WithValue(ctx, a, "b")
