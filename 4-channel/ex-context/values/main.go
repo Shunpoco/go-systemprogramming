@@ -8,7 +8,7 @@ import (
 
 var wg sync.WaitGroup
 
-func generator(ctx context.Context, num int, userID int, authToken string, traceID int) <-chan int {
+func generator(ctx context.Context, num int) <-chan int {
 	out := make(chan int)
 
 	go func() {
@@ -25,6 +25,7 @@ func generator(ctx context.Context, num int, userID int, authToken string, trace
 		}
 
 		close(out)
+		userID, authToken, traceID := ctx.Value("userID").(int), ctx.Value("authToken").(string), ctx.Value("traceID").(int)
 		fmt.Println("log: ", userID, authToken, traceID)
 		fmt.Println("generator closed")
 	}()
@@ -34,7 +35,11 @@ func generator(ctx context.Context, num int, userID int, authToken string, trace
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
-	gen := generator(ctx, 1, 2, "xxxx", 3)
+	ctx = context.WithValue(ctx, "userID", 2)
+	ctx = context.WithValue(ctx, "authToken", "xxxx")
+	ctx = context.WithValue(ctx, "traceID", 3)
+
+	gen := generator(ctx, 1)
 
 	wg.Add(1)
 
