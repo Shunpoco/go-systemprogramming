@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 )
@@ -18,8 +19,11 @@ func generator(ctx context.Context, num int) <-chan int {
 		for {
 			select {
 			case <-ctx.Done():
-				// We can't know why this case is occured. Explicitly canceled or timeout?
-				fmt.Println("Done!")
+				if err := ctx.Err(); errors.Is(err, context.Canceled) {
+					fmt.Println("canceled")
+				} else if errors.Is(err, context.DeadlineExceeded) {
+					fmt.Println("deadline")
+				}
 				break LOOP
 			case out <- num:
 			}
