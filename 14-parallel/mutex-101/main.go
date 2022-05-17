@@ -10,9 +10,9 @@ var id int
 func generatedId(mutex *sync.Mutex) int {
 	// Lock()/Unlock()をペアで呼び出してロックする
 	mutex.Lock()
+	defer mutex.Unlock()
 	id++
 	result := id
-	mutex.Unlock()
 	return result
 }
 
