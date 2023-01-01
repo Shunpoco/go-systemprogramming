@@ -11,13 +11,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	conn, err := ln.Accept()
-	if err != nil {
-		panic(err)
+
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			panic(err)
+		}
+
+		go func() {
+			b, err := io.ReadAll(conn)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Printf("%s\n", b)
+			conn.Close()
+		}()
 	}
-	b, err := io.ReadAll(conn)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%s", b)
 }
