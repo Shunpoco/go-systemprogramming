@@ -1,6 +1,10 @@
 package main
 
-import "net"
+import (
+	"fmt"
+	"io"
+	"net"
+)
 
 func main() {
 	ln, err := net.Listen("tcp", ":9999")
@@ -11,5 +15,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	println(conn)
+	b, err := io.ReadAll(conn)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s", b)
 }
