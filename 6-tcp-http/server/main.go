@@ -2,8 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"compress/gzip"
 	"fmt"
 	"io"
 	"net"
@@ -13,11 +11,13 @@ import (
 	"time"
 )
 
-func isGZipAcceptable(request *http.Request) bool {
-	return strings.Index(
-		strings.Join(request.Header["Accept-Encoding"], ","),
-		"gzip",
-	) != -1
+var contents = []string{
+	"これは、私が小さいときに、村の茂平というおじいさんからきいたお話です。",
+	"むかしは、私たちの村のちかくの、中山というところに小さなお城があって、",
+	"中山さまというおとのさまが、おられたそうです。",
+	"その中山から、少しはなれた山の中に、「ごん狐」という狐がいました。",
+	"ごんは、一人ぼっちの子狐で、しだのいっぱい茂った森の中に穴を掘って住んでいました。",
+	"そして、夜でも昼でも、あたりの村へ出て来て、いたずらばかりしました。",
 }
 
 func processSession(conn net.Conn) {
@@ -42,29 +42,18 @@ func processSession(conn net.Conn) {
 		}
 		fmt.Println(string(dump))
 
-		response := http.Response{
-			StatusCode: http.StatusAccepted,
-			ProtoMajor: 1,
-			ProtoMinor: 1,
-			Header:     make(http.Header),
+		fmt.Fprintf(conn, strings.Join([]string{
+			"HTTP/1.1 200 OK",
+			"Content-Type: text/plain",
+			"Transfer-Encoding: chunked",
+			"",
+			"",
+		}, "\r\n"))
+		for _, content := range contents {
+			bytes := []byte(content)
+			fmt.Fprintf(conn, "%x\r\n%s\r\n", len(bytes), content)
 		}
-		if isGZipAcceptable(request) {
-			content := "Hello World (gzipped)\n"
-			var buffer bytes.Buffer
-			writer := gzip.NewWriter(&buffer)
-			io.WriteString(writer, content)
-			writer.Close()
-			response.Body = io.NopCloser(&buffer)
-			response.ContentLength = int64(buffer.Len())
-			response.Header.Set("Content-Encoding", "gzip")
-		} else {
-			content := "Hello World\n"
-			response.Body = io.NopCloser(
-				strings.NewReader(content),
-			)
-			response.ContentLength = int64(len(content))
-		}
-		response.Write(conn)
+		fmt.Fprintf(conn, "0\r\n\r\n") // Close
 	}
 }
 
