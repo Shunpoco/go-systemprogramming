@@ -11,21 +11,43 @@ import (
 	"time"
 )
 
-var contents = []string{
-	"これは、私が小さいときに、村の茂平というおじいさんからきいたお話です。",
-	"むかしは、私たちの村のちかくの、中山というところに小さなお城があって、",
-	"中山さまというおとのさまが、おられたそうです。",
-	"その中山から、少しはなれた山の中に、「ごん狐」という狐がいました。",
-	"ごんは、一人ぼっちの子狐で、しだのいっぱい茂った森の中に穴を掘って住んでいました。",
-	"そして、夜でも昼でも、あたりの村へ出て来て、いたずらばかりしました。",
+func writeToConn(sessionResponses chan chan *http.Response, conn net.Conn) {
+	defer conn.Close()
+
+	for sessionResponse := range sessionResponses {
+		response := <-sessionResponse
+		response.Write(conn)
+		close(sessionResponse)
+	}
+}
+
+func handleRequest(request *http.Request, resultReceiver chan *http.Response) {
+	dump, err := httputil.DumpRequest(request, true)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(dump))
+	content := "Hello world\n"
+	response := &http.Response{
+		StatusCode:    http.StatusAccepted,
+		ProtoMajor:    1,
+		ProtoMinor:    1,
+		ContentLength: int64(len(content)),
+		Body:          io.NopCloser(strings.NewReader(content)),
+	}
+
+	resultReceiver <- response
 }
 
 func processSession(conn net.Conn) {
 	fmt.Printf("Accept %v\n", conn.RemoteAddr())
-	defer conn.Close()
+	sessionResponses := make(chan chan *http.Response, 50)
+	defer close(sessionResponses)
+	go writeToConn(sessionResponses, conn)
+	reader := bufio.NewReader(conn)
 	for {
 		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-		request, err := http.ReadRequest(bufio.NewReader(conn))
+		request, err := http.ReadRequest(reader)
 		if err != nil {
 			neterr, ok := err.(net.Error)
 			if ok && neterr.Timeout() {
@@ -36,24 +58,10 @@ func processSession(conn net.Conn) {
 			}
 			panic(err)
 		}
-		dump, err := httputil.DumpRequest(request, true)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(dump))
 
-		fmt.Fprintf(conn, strings.Join([]string{
-			"HTTP/1.1 200 OK",
-			"Content-Type: text/plain",
-			"Transfer-Encoding: chunked",
-			"",
-			"",
-		}, "\r\n"))
-		for _, content := range contents {
-			bytes := []byte(content)
-			fmt.Fprintf(conn, "%x\r\n%s\r\n", len(bytes), content)
-		}
-		fmt.Fprintf(conn, "0\r\n\r\n") // Close
+		sessionResponse := make(chan *http.Response)
+		sessionResponses <- sessionResponse
+		go handleRequest(request, sessionResponse)
 	}
 }
 
