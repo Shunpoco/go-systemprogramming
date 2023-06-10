@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 )
@@ -15,7 +14,8 @@ func main() {
 
 	_, err := os.Stat(filepath)
 	// if err == os.ErrNotExist { // これはmatchしない
-	if errors.Is(err, os.ErrNotExist) {
+	// if errors.Is(err, os.ErrNotExist) {
+	if os.IsNotExist(err) {
 		fmt.Printf("File %s doesn't exist", filepath)
 		os.Exit(1)
 	} else if err != nil {
